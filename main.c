@@ -1,10 +1,10 @@
 #include "shell.h"
 
 /**
- * main - Entry point for simple shell 0.3
+ * main - Entry point for simple shell 0.3 with proper exit status tracking
  * @ac: Argument count (unused)
  * @av: Argument vector containing program name
- * Return: Always 0 on success
+ * Return: Last recorded exit status
  */
 int main(int ac, char **av)
 {
@@ -13,7 +13,7 @@ int main(int ac, char **av)
 	ssize_t characters_read;
 	char *args[1024];
 	char *token;
-	int i;
+	int i, exit_status = 0;
 	(void)ac;
 
 	while (1)
@@ -26,7 +26,7 @@ int main(int ac, char **av)
 			free(buffer);
 			if (isatty(STDIN_FILENO))
 				write(STDOUT_FILENO, "\n", 1);
-			exit(EXIT_SUCCESS);
+			exit(exit_status); /* Exit with the actual last status recorded */
 		}
 
 		if (buffer[characters_read - 1] == '\n')
@@ -44,11 +44,11 @@ int main(int ac, char **av)
 
 		if (args[0] != NULL)
 		{
-			handle_command(args, av[0]);
+			exit_status = handle_command(args, av[0]);
 		}
 	}
 	free(buffer);
-	return (0);
+	return (exit_status);
 }
 
 /**
@@ -67,29 +67,27 @@ void prompt_display(void)
  * handle_command - Validates path and forks only if command exists
  * @args: Array of command strings and parameters
  * @prog_name: Name of the shell program
+ * Return: 0 on success, 127 if command not found
  */
-void handle_command(char **args, char *prog_name)
+int handle_command(char **args, char *prog_name)
 {
 	pid_t child_pid;
-	int status;
+	int status, exit_code = 0;
 	char *executable_path;
 
-	/* Find full path before forking */
 	executable_path = find_path(args[0]);
 	if (executable_path == NULL)
 	{
-		/* Exact error format expected by Holberton checker */
 		fprintf(stderr, "%s: 1: %s: not found\n", prog_name, args[0]);
-		return;
+		return (127); /* Return 127 command not found status */
 	}
 
-	/* fork must not be called if the command doesn't exist */
 	child_pid = fork();
 	if (child_pid == -1)
 	{
 		perror("Error");
 		free(executable_path);
-		return;
+		return (1);
 	}
 
 	if (child_pid == 0)
@@ -104,6 +102,10 @@ void handle_command(char **args, char *prog_name)
 	else
 	{
 		wait(&status);
+		if (WIFEXITED(status))
+			exit_code = WEXITSTATUS(status);
 		free(executable_path);
 	}
+
+	return (exit_code);
 }
