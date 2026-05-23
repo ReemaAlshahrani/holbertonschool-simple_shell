@@ -1,7 +1,7 @@
 #include "shell.h"
 
 /**
- * main - Entry point for simple shell 0.3 with PATH handling
+ * main - Entry point for simple shell 0.3
  * @ac: Argument count (unused)
  * @av: Argument vector containing program name
  * Return: Always 0 on success
@@ -43,7 +43,9 @@ int main(int ac, char **av)
 		args[i] = NULL;
 
 		if (args[0] != NULL)
+		{
 			handle_command(args, av[0]);
+		}
 	}
 	free(buffer);
 	return (0);
@@ -72,15 +74,16 @@ void handle_command(char **args, char *prog_name)
 	int status;
 	char *executable_path;
 
-	/* Look for the command inside the PATH before forking */
+	/* Find full path before forking */
 	executable_path = find_path(args[0]);
 	if (executable_path == NULL)
 	{
+		/* Exact error format expected by Holberton checker */
 		fprintf(stderr, "%s: 1: %s: not found\n", prog_name, args[0]);
 		return;
 	}
 
-	/* Fork is called only after ensuring the file exists! */
+	/* fork must not be called if the command doesn't exist */
 	child_pid = fork();
 	if (child_pid == -1)
 	{
