@@ -1,7 +1,7 @@
 #include "shell.h"
 
 /**
- * main - Entry point for simple shell with full argument support
+ * main - Entry point for simple shell 0.2 with full argument handling
  * @ac: Argument count (unused)
  * @av: Argument vector containing program name
  * Return: Always 0 on success
@@ -11,7 +11,7 @@ int main(int ac, char **av)
 	char *buffer = NULL;
 	size_t bufsize = 0;
 	ssize_t characters_read;
-	char *args[1024]; /* Array to store the command and its arguments */
+	char *args[1024];
 	char *token;
 	int i;
 	(void)ac;
@@ -34,7 +34,7 @@ int main(int ac, char **av)
 		if (buffer[characters_read - 1] == '\n')
 			buffer[characters_read - 1] = '\0';
 
-		/* Tokenize the input string into arguments */
+		/* Tokenize the input string into arguments array */
 		i = 0;
 		token = strtok(buffer, " \t");
 		while (token != NULL)
@@ -43,9 +43,9 @@ int main(int ac, char **av)
 			i++;
 			token = strtok(NULL, " \t");
 		}
-		args[i] = NULL; /* Executive array must end with NULL */
+		args[i] = NULL;
 
-		/* Execute only if at least one argument/command is typed */
+		/* Execute only if the arguments array is not empty */
 		if (args[0] != NULL)
 		{
 			handle_command(args, av[0]);
@@ -69,16 +69,16 @@ void prompt_display(void)
 }
 
 /**
- * handle_command - Executes commands with full argument vectors
- * @args: Array of strings containing the command and arguments
- * @prog_name: Name of the shell program for error tracking
+ * handle_command - Forks a child process and runs command with arguments
+ * @args: Double pointer array containing command and its parameters
+ * @prog_name: Name of the shell program used for standard error outputs
  */
 void handle_command(char **args, char *prog_name)
 {
 	pid_t child_pid;
 	int status;
 
-	/* Check if the file exists and is executable */
+	/* Check if the specific command file exists and is executable */
 	if (access(args[0], X_OK) == -1)
 	{
 		fprintf(stderr, "%s: 1: %s: not found\n", prog_name, args[0]);
@@ -94,7 +94,7 @@ void handle_command(char **args, char *prog_name)
 
 	if (child_pid == 0)
 	{
-		/* Send the entire matrix of arguments into execve */
+		/* Execute the whole arguments array through execve */
 		if (execve(args[0], args, environ) == -1)
 		{
 			perror(prog_name);
@@ -103,7 +103,7 @@ void handle_command(char **args, char *prog_name)
 	}
 	else
 	{
-		/* Wait until the execution finishes */
+		/* Wait until the execution finishes before prompting again */
 		wait(&status);
 	}
 }
