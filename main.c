@@ -1,7 +1,7 @@
 #include "shell.h"
 
 /**
- * main - Entry point for simple shell 0.3 with proper exit status tracking
+ * main - Entry point for simple shell 0.3
  * @ac: Argument count (unused)
  * @av: Argument vector containing program name
  * Return: Last recorded exit status
@@ -26,7 +26,7 @@ int main(int ac, char **av)
 			free(buffer);
 			if (isatty(STDIN_FILENO))
 				write(STDOUT_FILENO, "\n", 1);
-			exit(exit_status); /* Exit with the actual last status recorded */
+			exit(exit_status);
 		}
 
 		if (buffer[characters_read - 1] == '\n')
@@ -79,7 +79,7 @@ int handle_command(char **args, char *prog_name)
 	if (executable_path == NULL)
 	{
 		fprintf(stderr, "%s: 1: %s: not found\n", prog_name, args[0]);
-		return (127); /* Return 127 command not found status */
+		return (127);
 	}
 
 	child_pid = fork();

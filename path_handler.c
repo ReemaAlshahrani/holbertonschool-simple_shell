@@ -26,7 +26,7 @@ char *_getenv(const char *name)
 
 /**
  * find_path - Resolves a command name into its full executable path
- * @command: The command to resolve
+ * @command: The command to resolve (e.g., "ls", "./hbtn_ls")
  * Return: Allocated full path string on success, or NULL if not found
  */
 char *find_path(char *command)
@@ -37,6 +37,7 @@ char *find_path(char *command)
 	if (command == NULL)
 		return (NULL);
 
+	/* Case 1: If command specifies an explicit path (contains '/'), check it directly */
 	if (strchr(command, '/') != NULL)
 	{
 		if (stat(command, &st) == 0 && (st.st_mode & S_IXUSR))
@@ -44,14 +45,14 @@ char *find_path(char *command)
 		return (NULL);
 	}
 
+	/* Case 2: Retrieve PATH environment variable */
 	path_env = _getenv("PATH");
+	
+	/* If PATH is completely unset or missing, do NOT check current directory for bare commands */
 	if (path_env == NULL || strlen(path_env) == 0)
-	{
-		if (stat(command, &st) == 0 && (st.st_mode & S_IXUSR))
-			return (strdup(command));
 		return (NULL);
-	}
 
+	/* Case 3: Iterate through PATH directories */
 	path_copy = strdup(path_env);
 	if (path_copy == NULL)
 		return (NULL);
@@ -59,6 +60,7 @@ char *find_path(char *command)
 	token = strtok(path_copy, ":");
 	while (token != NULL)
 	{
+		/* Allocate space for: directory + '/' + command + '\0' */
 		full_path = malloc(strlen(token) + strlen(command) + 2);
 		if (full_path == NULL)
 		{
@@ -77,9 +79,5 @@ char *find_path(char *command)
 	}
 
 	free(path_copy);
-
-	if (stat(command, &st) == 0 && (st.st_mode & S_IXUSR))
-		return (strdup(command));
-
 	return (NULL);
 }
