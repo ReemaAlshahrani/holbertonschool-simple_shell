@@ -15,5 +15,7 @@ extern char **environ;
 /* Function prototypes */
 void prompt_display(void);
 void handle_command(char **args, char *prog_name);
+char *find_path(char *command);
+char *_getenv(const char *name);
 
 #endif /* SHELL_H */
