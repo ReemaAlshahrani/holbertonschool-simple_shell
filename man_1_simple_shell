@@ -1,0 +1,26 @@
+.TH SIMPLE_SHELL 1 "MAY 2026" "Holberton School" "Unix Command Manual"
+.SH NAME
+simple_shell \- Custom basic UNIX command line interpreter
+.SH SYNOPSIS
+.B ./hsh
+.SH DESCRIPTION
+.B simple_shell
+is a simple command-line interface written in C that interprets and executes standard commands entered by the user. It supports running programs via full system paths, searching through directories listed in the PATH environment variable, and handling specialized built-ins.
+.SH FEATURES
+.IP \(bu 2
+Displays a dedicated command prompt ($ ) and implements dynamic waiting buffers when active interactively.
+.IP \(bu 2
+Operates cleanly when piped directly through standard non-interactive descriptors.
+.IP \(bu 2
+Maintains absolute exit state telemetry (e.g., status 127 upon missing targets).
+.SH BUILT-INS
+.TP
+.B exit
+Terminates the shell session and cleans up resources.
+.TP
+.B env
+Outputs all active strings present in the current environment context.
+.SH SEE ALSO
+sh(1), bash(1), execve(2), fork(2), wait(2)
+.SH AUTHORS
+Reema Alshahrani
