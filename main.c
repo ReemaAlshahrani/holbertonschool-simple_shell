@@ -1,7 +1,7 @@
 #include "shell.h"
 
 /**
- * main - Entry point for simple shell 0.3
+ * main - Entry point for simple shell 0.4 with exit built-in
  * @ac: Argument count (unused)
  * @av: Argument vector containing program name
  * Return: Last recorded exit status
@@ -44,6 +44,13 @@ int main(int ac, char **av)
 
 		if (args[0] != NULL)
 		{
+
+			if (strcmp(args[0], "exit") == 0)
+			{
+				free(buffer);
+				exit(exit_status);
+			}
+
 			exit_status = handle_command(args, av[0]);
 		}
 	}
