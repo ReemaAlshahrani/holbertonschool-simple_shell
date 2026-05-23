@@ -1,7 +1,7 @@
 #include "shell.h"
 
 /**
- * main - Entry point for simple shell 0.4 with exit built-in
+ * main - Entry point for simple shell 1.0 with exit and env built-ins
  * @ac: Argument count (unused)
  * @av: Argument vector containing program name
  * Return: Last recorded exit status
@@ -13,7 +13,7 @@ int main(int ac, char **av)
 	ssize_t characters_read;
 	char *args[1024];
 	char *token;
-	int i, exit_status = 0;
+	int i, env_idx, exit_status = 0;
 	(void)ac;
 
 	while (1)
@@ -44,14 +44,29 @@ int main(int ac, char **av)
 
 		if (args[0] != NULL)
 		{
-
+			/* 1. Built-in exit handling */
 			if (strcmp(args[0], "exit") == 0)
 			{
 				free(buffer);
 				exit(exit_status);
 			}
-
-			exit_status = handle_command(args, av[0]);
+			/* 2. Built-in env handling */
+			else if (strcmp(args[0], "env") == 0)
+			{
+				env_idx = 0;
+				while (environ[env_idx] != NULL)
+				{
+					write(STDOUT_FILENO, environ[env_idx], strlen(environ[env_idx]));
+					write(STDOUT_FILENO, "\n", 1);
+					env_idx++;
+				}
+				exit_status = 0;
+			}
+			/* 3. External commands handling */
+			else
+			{
+				exit_status = handle_command(args, av[0]);
+			}
 		}
 	}
 	free(buffer);
@@ -74,7 +89,7 @@ void prompt_display(void)
  * handle_command - Validates path and forks only if command exists
  * @args: Array of command strings and parameters
  * @prog_name: Name of the shell program
- * Return: 0 on success, 127 if command not found
+ * Return: 0 on success, 127 if command not found, or child exit status
  */
 int handle_command(char **args, char *prog_name)
 {
