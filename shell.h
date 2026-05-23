@@ -14,6 +14,6 @@ extern char **environ;
 
 /* Function prototypes */
 void prompt_display(void);
-void handle_command(char *command);
+void handle_command(char *command, char *prog_name);
 
 #endif /* SHELL_H */

@@ -1,20 +1,23 @@
 #include "shell.h"
 
 /**
- * main - Core REPL loop for the simple shell
+ * main - Entry point for simple shell 0.1
+ * @ac: Argument count (unused)
+ * @av: Argument vector containing program name
  * Return: Always 0 on success
  */
-int main(void)
+int main(int ac, char **av)
 {
 	char *buffer = NULL;
 	size_t bufsize = 0;
 	ssize_t characters_read;
+	(void)ac;
 
 	while (1)
 	{
 		prompt_display();
 
-		/* Read input and handle EOF / Ctrl+D */
+		/* Handle end of file (Ctrl+D) condition */
 		characters_read = getline(&buffer, &bufsize, stdin);
 		if (characters_read == -1)
 		{
@@ -28,10 +31,10 @@ int main(void)
 		if (buffer[characters_read - 1] == '\n')
 			buffer[characters_read - 1] = '\0';
 
-		/* Execute command if input is not empty */
+		/* Execute if the parsed command line is not empty */
 		if (strlen(buffer) > 0)
 		{
-			handle_command(buffer);
+			handle_command(buffer, av[0]);
 		}
 	}
 
@@ -40,22 +43,23 @@ int main(void)
 }
 
 /**
- * prompt_display - Prints the shell prompt in interactive mode
+ * prompt_display - Prints the prompt symbol if in interactive mode
  */
 void prompt_display(void)
 {
 	if (isatty(STDIN_FILENO))
 	{
-		write(STDOUT_FILENO, "($) ", 4);
+		write(STDOUT_FILENO, "#cisfun$ ", 9);
 		fflush(stdout);
 	}
 }
 
 /**
- * handle_command - Forks a child process and executes a basic command
- * @command: The string containing the command to execute
+ * handle_command - Executes simple single-word command
+ * @command: The string containing the executable command
+ * @prog_name: Name of the shell program for error tracking
  */
-void handle_command(char *command)
+void handle_command(char *command, char *prog_name)
 {
 	pid_t child_pid;
 	int status;
@@ -63,6 +67,13 @@ void handle_command(char *command)
 
 	args[0] = command;
 	args[1] = NULL;
+
+	/* Check if the file exists and is executable before forking */
+	if (access(args[0], X_OK) == -1)
+	{
+		fprintf(stderr, "%s: 1: %s: not found\n", prog_name, args[0]);
+		return;
+	}
 
 	child_pid = fork();
 	if (child_pid == -1)
@@ -73,16 +84,16 @@ void handle_command(char *command)
 
 	if (child_pid == 0)
 	{
-		/* Execute the program using system environment variables */
+		/* Core execution sending system environment */
 		if (execve(args[0], args, environ) == -1)
 		{
-			perror("./hsh");
+			perror(prog_name);
 			exit(EXIT_FAILURE);
 		}
 	}
 	else
 	{
-		/* Parent process waits for child to finish execution */
+		/* Wait until the execution finishes */
 		wait(&status);
 	}
 }
