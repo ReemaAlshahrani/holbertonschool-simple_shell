@@ -1,7 +1,7 @@
 #include "shell.h"
 
 /**
- * main - Entry point for simple shell 0.1 with space handling
+ * main - Entry point for simple shell with full argument support
  * @ac: Argument count (unused)
  * @av: Argument vector containing program name
  * Return: Always 0 on success
@@ -11,7 +11,9 @@ int main(int ac, char **av)
 	char *buffer = NULL;
 	size_t bufsize = 0;
 	ssize_t characters_read;
-	char *clean_command;
+	char *args[1024]; /* Array to store the command and its arguments */
+	char *token;
+	int i;
 	(void)ac;
 
 	while (1)
@@ -32,13 +34,21 @@ int main(int ac, char **av)
 		if (buffer[characters_read - 1] == '\n')
 			buffer[characters_read - 1] = '\0';
 
-		/* Use strtok to strip away spaces and tabs */
-		clean_command = strtok(buffer, " \t");
-
-		/* Execute only if there is a valid command after trimming */
-		if (clean_command != NULL && strlen(clean_command) > 0)
+		/* Tokenize the input string into arguments */
+		i = 0;
+		token = strtok(buffer, " \t");
+		while (token != NULL)
 		{
-			handle_command(clean_command, av[0]);
+			args[i] = token;
+			i++;
+			token = strtok(NULL, " \t");
+		}
+		args[i] = NULL; /* Executive array must end with NULL */
+
+		/* Execute only if at least one argument/command is typed */
+		if (args[0] != NULL)
+		{
+			handle_command(args, av[0]);
 		}
 	}
 
@@ -59,18 +69,14 @@ void prompt_display(void)
 }
 
 /**
- * handle_command - Executes simple single-word command
- * @command: The clean string containing the executable command
+ * handle_command - Executes commands with full argument vectors
+ * @args: Array of strings containing the command and arguments
  * @prog_name: Name of the shell program for error tracking
  */
-void handle_command(char *command, char *prog_name)
+void handle_command(char **args, char *prog_name)
 {
 	pid_t child_pid;
 	int status;
-	char *args[2];
-
-	args[0] = command;
-	args[1] = NULL;
 
 	/* Check if the file exists and is executable */
 	if (access(args[0], X_OK) == -1)
@@ -88,7 +94,7 @@ void handle_command(char *command, char *prog_name)
 
 	if (child_pid == 0)
 	{
-		/* Core execution sending system environment */
+		/* Send the entire matrix of arguments into execve */
 		if (execve(args[0], args, environ) == -1)
 		{
 			perror(prog_name);
