@@ -1,7 +1,7 @@
 #include "shell.h"
 
 /**
- * main - Entry point for simple shell 0.1
+ * main - Entry point for simple shell 0.1 with space handling
  * @ac: Argument count (unused)
  * @av: Argument vector containing program name
  * Return: Always 0 on success
@@ -11,6 +11,7 @@ int main(int ac, char **av)
 	char *buffer = NULL;
 	size_t bufsize = 0;
 	ssize_t characters_read;
+	char *clean_command;
 	(void)ac;
 
 	while (1)
@@ -31,10 +32,13 @@ int main(int ac, char **av)
 		if (buffer[characters_read - 1] == '\n')
 			buffer[characters_read - 1] = '\0';
 
-		/* Execute if the parsed command line is not empty */
-		if (strlen(buffer) > 0)
+		/* Use strtok to strip away spaces and tabs */
+		clean_command = strtok(buffer, " \t");
+
+		/* Execute only if there is a valid command after trimming */
+		if (clean_command != NULL && strlen(clean_command) > 0)
 		{
-			handle_command(buffer, av[0]);
+			handle_command(clean_command, av[0]);
 		}
 	}
 
@@ -56,7 +60,7 @@ void prompt_display(void)
 
 /**
  * handle_command - Executes simple single-word command
- * @command: The string containing the executable command
+ * @command: The clean string containing the executable command
  * @prog_name: Name of the shell program for error tracking
  */
 void handle_command(char *command, char *prog_name)
@@ -68,7 +72,7 @@ void handle_command(char *command, char *prog_name)
 	args[0] = command;
 	args[1] = NULL;
 
-	/* Check if the file exists and is executable before forking */
+	/* Check if the file exists and is executable */
 	if (access(args[0], X_OK) == -1)
 	{
 		fprintf(stderr, "%s: 1: %s: not found\n", prog_name, args[0]);
